@@ -19,7 +19,7 @@ jobs:
     #Step 1: Checkout the code
     - name: Check out code
       uses: actions/checkout@v2
-    
+
     #Step 2: Log in to AWS CLI
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
