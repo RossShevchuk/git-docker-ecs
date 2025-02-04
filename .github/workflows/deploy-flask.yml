@@ -10,6 +10,8 @@ env:
     ECR_REGISTRY: 430118857028.dkr.ecr.eu-west-1.amazonaws.com
     ECR_REPOSITORY: coffee-wifi
     IMAGE_TAG: latest
+    ECS_CLUSTER: ${{ env.ECS_CLUSTER }}
+    ECS_SERVICE: ${{ env.ECS_SERVICE }}
 
 jobs:
   deploy:
