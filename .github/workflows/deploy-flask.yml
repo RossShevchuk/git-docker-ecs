@@ -10,9 +10,13 @@ env:
     ECR_REGISTRY: 430118857028.dkr.ecr.eu-west-1.amazonaws.com
     ECR_REPOSITORY: coffee-wifi
     IMAGE_TAG: latest
+    ECS_CLUSTER: coffeeCluster
+    ECS_SERVICE: coffee-service
 
 jobs:
-  deploy:
+  # Job 1: Build and Push to ECR
+  build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +24,24 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    #Step 2: Log in to AWS CLI
+    #Step 2: Login to Amazon ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push image to Amazon ECR
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  # Job 2: Deploy to ECS (Runs after build-and-push)
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: build-and-push  # Ensures deployment happens after image push
+
+    steps:
+      #Step 1: Log in to AWS CLI
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -28,21 +49,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.SSH_KEY }}
         aws-region: ${{ secrets.REGION }}
 
-    #Step 3: Login to Amazon ECR
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-    - name: Set Mode environment variable
+    - name: Get the latest task definition
       run: |
-        echo "ECS_SERVICE=coffee-service" >> $GITHUB_ENV
-        echo "ECS_CLUSTER=coffeeCluster" >> $GITHUB_ENV
+        aws ecs describe-task-definition --task-definition coffee-task \
+          --query "taskDefinition" > task-definition.json
 
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        AWS_REGION: ${{ secrets.REGION }}
-        ECS_CLUSTER: ${{ env.ECS_CLUSTER }}
-        ECS_SERVICE: ${{ env.ECS_SERVICE }}
+    - name: Update task definition with new image
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        jq '.containerDefinitions[0].image = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"' \
+          task-definition.json > new-task-definition.json
+
+    - name: Register new task definition
+      run: |
+        aws ecs register-task-definition --cli-input-json file://new-task-definition.json
+
+    - name: Update ECS service to use new task definition
+      run: |
+        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition my-task-def --region $AWS_REGION
