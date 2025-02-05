@@ -66,11 +66,6 @@ jobs:
       run: |
         jq '.containerDefinitions[0].image = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"' \
           task-definition.json > new-task-definition.json
-        echo 'PACKAGE_JSON<<EOF' >> $GITHUB_ENV
-        cat file://new-task-definition.json >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
-        echo '${{ fromJson(env.PACKAGE_JSON).version }}'
-
 
     - name: Register new task definition
       run: |
