@@ -61,16 +61,3 @@ jobs:
       run: |
         aws ecs describe-task-definition --task-definition coffee-task \
           --query "taskDefinition" > task-definition.json
-
-    - name: Update task definition with new image
-      run: |
-        jq '.containerDefinitions[0].image = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"' \
-          task-definition.json > new-task-definition.json
-
-    - name: Register new task definition
-      run: |
-        aws ecs register-task-definition --cli-input-json file://new-task-definition.json
-
-    - name: Update ECS service to use new task definition
-      run: |
-        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition my-task-def --region $AWS_REGION
