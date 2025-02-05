@@ -34,10 +34,10 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-     - name: Set Mode environment variable
-        run: |
-          echo "ECS_SERVICE=coffee-service" >> $GITHUB_ENV
-          echo "ECS_CLUSTER=coffeeCluster" >> $GITHUB_ENV
+    - name: Set Mode environment variable
+      run: |
+        echo "ECS_SERVICE=coffee-service" >> $GITHUB_ENV
+        echo "ECS_CLUSTER=coffeeCluster" >> $GITHUB_ENV
 
     - name: Build, tag, and push image to Amazon ECR
       env:
