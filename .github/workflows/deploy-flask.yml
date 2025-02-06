@@ -11,7 +11,7 @@ env:
     ECR_REPOSITORY: coffee-wifi
     IMAGE_TAG: latest
     ECS_CLUSTER: coffeeCluster
-    ECS_SERVICE: coffee-service
+    ECS_SERVICE: coffeeService
 
 jobs:
   # Job 1: Build and Push to ECR
@@ -70,4 +70,3 @@ jobs:
     - name: Register new task definition
       run: |
         aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment --region $AWS_REGION
-        
