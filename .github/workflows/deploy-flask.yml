@@ -69,4 +69,5 @@ jobs:
 
     - name: Register new task definition
       run: |
-        aws ecs register-task-definition --cli-input-json file://new-task-definition.json
+        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment --region $AWS_REGION
+        
