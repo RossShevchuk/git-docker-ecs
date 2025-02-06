@@ -41,6 +41,7 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker logs $(docker ps -q)
 
   # Job 2: Deploy to ECS (Runs after build-and-push)
   deploy:
