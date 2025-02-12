@@ -59,7 +59,7 @@ jobs:
 
     - name: Get the latest task definition
       run: |
-        aws ecs describe-task-definition --task-definition coffee-task \
+        aws ecs describe-task-definition --task-definition coffeeTaskDef \
           --query "taskDefinition" > task-definition.json
 
     - name: Update task definition with new image
